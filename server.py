@@ -61,25 +61,25 @@ def experta_debug_login():
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
-            page.goto('https://www.experta.com.ar/ARTServicio/ART/Transaccion/LoginInput.lnk', wait_until='networkidle')
-            page.wait_for_timeout(3000)
+            page.goto('https://www.experta.com.ar/ARTServicio/ART/Transaccion/LoginInput.lnk', wait_until='domcontentloaded')
+            page.wait_for_timeout(5000)
 
             screenshot = page.screenshot()
-            html = page.content()
             screenshot_b64 = base64.b64encode(screenshot).decode('utf-8')
 
-            # Extraer todos los inputs del HTML
             inputs = page.eval_on_selector_all('input', 'els => els.map(e => ({id: e.id, name: e.name, type: e.type, placeholder: e.placeholder}))')
+            url_actual = page.url
 
             browser.close()
 
             return jsonify({
                 "status": "success",
+                "url": url_actual,
                 "inputs": inputs,
                 "screenshot_base64": screenshot_b64
             })
     except Exception as e:
-        return jsonify({"status": "error", "mensaje": str(e)}), 500
+        return jsonify({"status": "error", "mensaje": str(e)}), 200
 
 
 @app.route('/experta/cotizar', methods=['POST'])
