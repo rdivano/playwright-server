@@ -106,8 +106,9 @@ def experta_cotizar():
             page.fill('#username', username)
             page.fill('#password', password)
             page.click('#kc-login')
-            # networkidle nunca se alcanza (Keycloak redirects + analytics) -> esperamos el nav
-            page.wait_for_selector('#jetmenu', timeout=30000)
+            # Keycloak hace multiples redirects -> esperamos domcontentloaded y luego el nav
+            page.wait_for_load_state('domcontentloaded')
+            page.wait_for_selector('#jetmenu', timeout=60000)
 
             # 2. Click en Cotizador (nav) - navega via form POST al Cotizador Multiproducto
             page.locator('text=Cotizador').first.click(no_wait_after=True)
