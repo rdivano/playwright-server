@@ -109,11 +109,11 @@ def experta_cotizar():
             page.wait_for_load_state('networkidle')
             page.wait_for_timeout(2000)
 
-            # 2. Click en Cotizador (nav) - puede ser navegacion SPA
+            # 2. Click en Cotizador (nav) - navega via form POST al Cotizador Multiproducto
             page.locator('text=Cotizador').first.click(no_wait_after=True)
-            page.wait_for_timeout(3000)
+            page.wait_for_selector('text=Cotizador Multiproducto', timeout=30000)
 
-            # 3. Click en Cotizar de ART + VIDA
+            # 3. Click en Cotizar de ART + VIDA (primer boton COTIZAR de la grilla)
             page.locator('text=COTIZAR').first.click()
             page.wait_for_timeout(3000)
 
