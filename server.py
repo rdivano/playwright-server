@@ -19,7 +19,10 @@ def cotizar():
 
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            browser = p.chromium.launch(
+                headless=True,
+                args=['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--disable-setuid-sandbox']
+            )
             page = browser.new_page()
 
             # Login
@@ -59,7 +62,10 @@ def experta_debug_login():
     """Toma screenshot del login y devuelve el HTML para inspeccionar selectores"""
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            browser = p.chromium.launch(
+                headless=True,
+                args=['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--disable-setuid-sandbox']
+            )
             page = browser.new_page()
             page.goto('https://www.experta.com.ar/ARTServicio/ART/Transaccion/LoginInput.lnk', wait_until='domcontentloaded')
             page.wait_for_timeout(5000)
@@ -97,7 +103,10 @@ def experta_cotizar():
 
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            browser = p.chromium.launch(
+                headless=True,
+                args=['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--disable-setuid-sandbox']
+            )
             page = browser.new_page()
 
             # 1. Login (Keycloak)
