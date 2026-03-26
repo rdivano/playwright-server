@@ -174,9 +174,9 @@ def experta_cotizar():
             page.wait_for_load_state('domcontentloaded')
             page.wait_for_selector('#jetmenu', timeout=60000)
 
-            # 2. Click en Cotizador (nav) - navega via form POST al Cotizador Multiproducto
+            # 2. Click en Cotizador (nav) -> navega a VentasInput.trx
             page.locator('text=Cotizador').first.click(no_wait_after=True)
-            page.wait_for_selector('text=Cotizador Multiproducto', timeout=30000)
+            page.wait_for_url('**/VentasInput.trx', timeout=30000)
 
             # 3. Click en Cotizar de ART + VIDA (primer boton COTIZAR de la grilla, case-sensitive)
             page.get_by_text('COTIZAR', exact=True).first.click(no_wait_after=True)
