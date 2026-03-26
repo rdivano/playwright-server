@@ -100,12 +100,14 @@ def experta_cotizar():
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
 
-            # 1. Login
-            page.goto('https://www.experta.com.ar/ARTServicio/ART/Transaccion/LoginInput.lnk', wait_until='networkidle')
-            page.fill('input[name="usuario"]', username)
-            page.fill('input[name="clave"]', password)
-            page.click('input[type="submit"], button[type="submit"]')
+            # 1. Login (Keycloak)
+            page.goto('https://www.experta.com.ar/ARTServicio/ART/Transaccion/LoginInput.lnk', wait_until='domcontentloaded')
+            page.wait_for_timeout(3000)
+            page.fill('#username', username)
+            page.fill('#password', password)
+            page.click('#kc-login')
             page.wait_for_load_state('networkidle')
+            page.wait_for_timeout(2000)
 
             # 2. Click en Cotizador (nav)
             page.click('text=Cotizador')
