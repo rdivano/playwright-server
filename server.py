@@ -114,12 +114,12 @@ def experta_cotizar():
             page.wait_for_selector('text=Cotizador Multiproducto', timeout=30000)
 
             # 3. Click en Cotizar de ART + VIDA (primer boton COTIZAR de la grilla, case-sensitive)
-            page.get_by_text('COTIZAR', exact=True).first.click()
-            page.wait_for_timeout(3000)
+            page.get_by_text('COTIZAR', exact=True).first.click(no_wait_after=True)
+            page.wait_for_selector('text=Ingresá la CUIT', timeout=30000)
 
-            # 4. Ingresar CUIT y buscar
-            page.locator('input').first.fill(cuit)
-            page.locator('text=Buscar').click()
+            # 4. Ingresar CUIT y buscar (input[type="text"] evita los hidden del form de nav)
+            page.locator('input[type="text"]').first.fill(cuit)
+            page.get_by_text('Buscar', exact=True).click()
             page.wait_for_timeout(3000)
 
             # 5. Seleccionar actividad del dropdown (custom searchable select)
