@@ -109,19 +109,18 @@ def experta_cotizar():
             page.wait_for_load_state('networkidle')
             page.wait_for_timeout(2000)
 
-            # 2. Click en Cotizador (nav)
-            page.click('text=Cotizador')
-            page.wait_for_load_state('networkidle')
+            # 2. Click en Cotizador (nav) - puede ser navegacion SPA
+            page.locator('text=Cotizador').first.click(no_wait_after=True)
+            page.wait_for_timeout(3000)
 
             # 3. Click en Cotizar de ART + VIDA
-            # El boton Cotizar esta en el primer card (ART + VIDA)
-            page.locator('.card, .producto, div').filter(has_text='ART').first.locator('text=COTIZAR').click()
-            page.wait_for_load_state('networkidle')
+            page.locator('text=COTIZAR').first.click()
+            page.wait_for_timeout(3000)
 
             # 4. Ingresar CUIT y buscar
-            page.fill('input[name="cuit"], input[id*="cuit"], input[placeholder*="CUIT"]', cuit)
-            page.click('text=Buscar')
-            page.wait_for_load_state('networkidle')
+            page.locator('input').first.fill(cuit)
+            page.locator('text=Buscar').click()
+            page.wait_for_timeout(3000)
 
             # 5. Seleccionar actividad del dropdown (custom searchable select)
             page.click('text=Seleccione la actividad')
