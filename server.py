@@ -53,46 +53,74 @@ def cotizar():
         }), 500
 
 
-@app.route('/experta/login', methods=['POST'])
-def experta_login():
+@app.route('/experta/cotizar', methods=['POST'])
+def experta_cotizar():
     data = request.json
     username = data.get('username')
     password = data.get('password')
+    cuit = data.get('cuit')
+    actividad = data.get('actividad', '')  # texto de búsqueda, vacío = primera opción
+    capitas = str(data.get('capitas', 1))
+    masa_salarial = str(data.get('masa_salarial', 0))
 
-    if not username or not password:
-        return jsonify({"status": "error", "mensaje": "username y password requeridos"}), 400
+    if not username or not password or not cuit:
+        return jsonify({"status": "error", "mensaje": "username, password y cuit son requeridos"}), 400
 
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
 
-            # Ir al login de Experta
+            # 1. Login
             page.goto('https://www.experta.com.ar/ARTServicio/ART/Transaccion/LoginInput.lnk', wait_until='networkidle')
-
-            # Completar credenciales
             page.fill('input[name="usuario"]', username)
             page.fill('input[name="clave"]', password)
             page.click('input[type="submit"], button[type="submit"]')
-
-            # Esperar que cargue el dashboard
             page.wait_for_load_state('networkidle')
 
-            # Hacer click en Cotizador
+            # 2. Click en Cotizador (nav)
             page.click('text=Cotizador')
-
-            # Esperar que cargue la pagina del cotizador
             page.wait_for_load_state('networkidle')
 
-            url_actual = page.url
-            titulo = page.title()
+            # 3. Click en Cotizar de ART + VIDA
+            # El boton Cotizar esta en el primer card (ART + VIDA)
+            page.locator('.card, .producto, div').filter(has_text='ART').first.locator('text=COTIZAR').click()
+            page.wait_for_load_state('networkidle')
+
+            # 4. Ingresar CUIT y buscar
+            page.fill('input[name="cuit"], input[id*="cuit"], input[placeholder*="CUIT"]', cuit)
+            page.click('text=Buscar')
+            page.wait_for_load_state('networkidle')
+
+            # 5. Seleccionar actividad del dropdown (custom searchable select)
+            page.click('text=Seleccione la actividad')
+            page.wait_for_selector('input[placeholder*="búsqueda"], input[placeholder*="busqueda"]')
+            if actividad:
+                page.fill('input[placeholder*="búsqueda"], input[placeholder*="busqueda"]', actividad)
+                page.wait_for_timeout(1000)
+            # Seleccionar primera opción visible
+            page.locator('li, .option, [role="option"]').filter(has_text='-').first.click()
+            page.wait_for_timeout(500)
+
+            # 6. Ingresar cápitas y masa salarial
+            page.locator('input[id*="capita"], input[name*="capita"]').first.fill(capitas)
+            page.locator('input[id*="masa"], input[id*="salarial"], input[name*="masa"]').first.fill(masa_salarial)
+
+            # Click Siguiente
+            page.click('text=Siguiente')
+            page.wait_for_load_state('networkidle')
+            page.wait_for_timeout(2000)
+
+            # 7. Extraer Cuota Mensual de la seccion ART
+            cuota_mensual = page.locator('text=Cuota Mensual').locator('..').locator('strong, b, span').first.inner_text()
 
             browser.close()
 
             return jsonify({
                 "status": "success",
-                "url": url_actual,
-                "titulo": titulo
+                "aseguradora": "Experta",
+                "cuit": cuit,
+                "cuota_mensual": cuota_mensual.strip()
             })
 
     except Exception as e:
