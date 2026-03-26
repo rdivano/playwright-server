@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from playwright.sync_api import sync_playwright
 import os
+import base64
 
 app = Flask(__name__)
 
@@ -51,6 +52,34 @@ def cotizar():
             "status": "error",
             "mensaje": str(e)
         }), 500
+
+
+@app.route('/experta/debug-login', methods=['GET'])
+def experta_debug_login():
+    """Toma screenshot del login y devuelve el HTML para inspeccionar selectores"""
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto('https://www.experta.com.ar/ARTServicio/ART/Transaccion/LoginInput.lnk', wait_until='networkidle')
+            page.wait_for_timeout(3000)
+
+            screenshot = page.screenshot()
+            html = page.content()
+            screenshot_b64 = base64.b64encode(screenshot).decode('utf-8')
+
+            # Extraer todos los inputs del HTML
+            inputs = page.eval_on_selector_all('input', 'els => els.map(e => ({id: e.id, name: e.name, type: e.type, placeholder: e.placeholder}))')
+
+            browser.close()
+
+            return jsonify({
+                "status": "success",
+                "inputs": inputs,
+                "screenshot_base64": screenshot_b64
+            })
+    except Exception as e:
+        return jsonify({"status": "error", "mensaje": str(e)}), 500
 
 
 @app.route('/experta/cotizar', methods=['POST'])
