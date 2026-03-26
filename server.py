@@ -57,6 +57,61 @@ def cotizar():
         }), 500
 
 
+@app.route('/experta/debug-cotizador', methods=['POST'])
+def experta_debug_cotizador():
+    """Login, click Cotizador, screenshot en cada paso para diagnosticar"""
+    data = request.json or {}
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"status": "error", "mensaje": "username y password son requeridos"}), 400
+
+    pasos = []
+
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(
+                headless=True,
+                args=['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--disable-setuid-sandbox']
+            )
+            page = browser.new_page()
+
+            # Paso 1: Login
+            page.goto('https://www.experta.com.ar/ARTServicio/ART/Transaccion/LoginInput.lnk', wait_until='domcontentloaded')
+            page.wait_for_timeout(3000)
+            page.fill('#username', username)
+            page.fill('#password', password)
+            page.click('#kc-login')
+            page.wait_for_load_state('domcontentloaded')
+            page.wait_for_selector('#jetmenu', timeout=60000)
+
+            pasos.append({
+                "paso": "post-login",
+                "url": page.url,
+                "screenshot": base64.b64encode(page.screenshot()).decode('utf-8')
+            })
+
+            # Paso 2: Click Cotizador
+            page.locator('text=Cotizador').first.click(no_wait_after=True)
+            page.wait_for_timeout(5000)
+
+            pasos.append({
+                "paso": "post-click-cotizador",
+                "url": page.url,
+                "screenshot": base64.b64encode(page.screenshot()).decode('utf-8'),
+                "texto_visible": page.inner_text('body')[:500]
+            })
+
+            browser.close()
+
+            return jsonify({"status": "success", "pasos": pasos})
+
+    except Exception as e:
+        pasos.append({"paso": "error", "mensaje": str(e)})
+        return jsonify({"status": "error", "pasos": pasos}), 500
+
+
 @app.route('/experta/debug-login', methods=['GET'])
 def experta_debug_login():
     """Toma screenshot del login y devuelve el HTML para inspeccionar selectores"""
