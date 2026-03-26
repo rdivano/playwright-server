@@ -106,8 +106,8 @@ def experta_cotizar():
             page.fill('#username', username)
             page.fill('#password', password)
             page.click('#kc-login')
-            page.wait_for_load_state('networkidle')
-            page.wait_for_timeout(2000)
+            # networkidle nunca se alcanza (Keycloak redirects + analytics) -> esperamos el nav
+            page.wait_for_selector('#jetmenu', timeout=30000)
 
             # 2. Click en Cotizador (nav) - navega via form POST al Cotizador Multiproducto
             page.locator('text=Cotizador').first.click(no_wait_after=True)
@@ -120,7 +120,7 @@ def experta_cotizar():
             # 4. Ingresar CUIT y buscar (input[type="text"] evita los hidden del form de nav)
             page.locator('input[type="text"]').first.fill(cuit)
             page.get_by_text('Buscar', exact=True).click()
-            page.wait_for_timeout(3000)
+            page.wait_for_selector('text=Seleccione la actividad', timeout=30000)
 
             # 5. Seleccionar actividad del dropdown (custom searchable select)
             page.click('text=Seleccione la actividad')
