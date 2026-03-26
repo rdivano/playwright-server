@@ -113,8 +113,8 @@ def experta_cotizar():
             page.locator('text=Cotizador').first.click(no_wait_after=True)
             page.wait_for_selector('text=Cotizador Multiproducto', timeout=30000)
 
-            # 3. Click en Cotizar de ART + VIDA (primer boton COTIZAR de la grilla)
-            page.locator('text=COTIZAR').first.click()
+            # 3. Click en Cotizar de ART + VIDA (primer boton COTIZAR de la grilla, case-sensitive)
+            page.get_by_text('COTIZAR', exact=True).first.click()
             page.wait_for_timeout(3000)
 
             # 4. Ingresar CUIT y buscar
